@@ -1,102 +1,22 @@
 import Groq from "groq-sdk";
-import { readFile, listFiles, writeFile, deleteFile } from "./tools/filesystem"
-import { executeShell } from "./tools/shell";
+import { readFile, listFiles, writeFile, deleteFile, readFileDeclaration, writeFileDeclaration, deleteFileDeclaration, listFilesDeclaration } from "./tools/filesystem"
+import { executeShell, executeShellDeclaration } from "./tools/shell";
 import chalk from "chalk";
 import dotenv from 'dotenv'
+import { getGithubIssue, listOpenIssues, createIssue, getGithubIssueDeclaration, listOpenIssuesDeclaration, createIssueDeclaration } from "./tools/github";
 dotenv.config();
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const tools: Groq.Chat.ChatCompletionTool[] = [
-    {
-        type: "function",
-        function: {
-            name: "readFile",
-            description: "Read the contents of a file",
-            parameters: {
-                type: "object",
-                properties: {
-                    path: {
-                        type: "string",
-                        description: "The file path to read",
-                    },
-                },
-                required: ["path"],
-            },
-        },
-    },
-    {
-        type: "function",
-        function: {
-            name: "listFiles",
-            description: "List all files in a directory",
-            parameters: {
-                type: "object",
-                properties: {
-                    path: {
-                        type: "string",
-                        description: "The directory path to list",
-                    },
-                },
-                required: ["path"],
-            },
-        },
-    },
-    {
-        type: "function",
-        function: {
-            name: "writeFile",
-            description: "Write content to a file. Use this to create new files or overwrite existing ones with code or text.",
-            parameters: {
-                type: "object",
-                properties: {
-                    path: {
-                        type: "string",
-                        description: "The path of the file to write to (e.g., src/app.tsx)",
-                    },
-                    content: {
-                        type: "string",
-                        description: "The exact multiline string, code, or text to write inside the file",
-                    }
-                },
-                required: ["path", "content"],
-            },
-        },
-    },
-    {
-        type: "function",
-        function: {
-            name: "deleteFile",
-            description: "Delete a file from the file system. Use this to remove files when requested.",
-            parameters: {
-                type: "object",
-                properties: {
-                    path: {
-                        type: "string",
-                        description: "The path of the file to delete (e.g., src/Haha.ts)",
-                    },
-                },
-                required: ["path"],
-            },
-        },
-    },
-    {
-        type: "function",
-        function: {
-            name: "executeShell",
-            description: "Use this to run scripts, OR to create or write files using terminal commands.",
-            parameters: {
-                type: "object",
-                properties: {
-                    command: {
-                        type: "string",
-                        description: "The valid shell command to execute",
-                    },
-                },
-                required: ["command"],
-            },
-        },
-    }
+    readFileDeclaration,
+    listFilesDeclaration,
+    writeFileDeclaration,
+    deleteFileDeclaration,
+    executeShellDeclaration,
+    getGithubIssueDeclaration,
+    listOpenIssuesDeclaration,
+    createIssueDeclaration
 ]
 
 type Message = Groq.Chat.ChatCompletionMessageParam
@@ -167,6 +87,15 @@ export async function runAgent(prompt: string): Promise<void> {
                     }
                     else if (toolCall.function.name == 'executeShell') {
                         result = executeShell(args.command)
+                    }
+                    else if (toolCall.function.name == 'getGithubIssue') {
+                        result = await getGithubIssue(args.owner, args.repo, args.issueNumber)
+                    }
+                    else if (toolCall.function.name == 'listOpenIssues') {
+                        result = await listOpenIssues(args.owner, args.repo)
+                    }
+                    else if (toolCall.function.name == 'createIssue') {
+                        result = await createIssue(args.owner, args.repo, args.title, args.body)
                     }
 
                     messages.push({
