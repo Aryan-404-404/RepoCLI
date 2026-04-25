@@ -1,6 +1,6 @@
 {
   "name": "@aryan-404-404/repocli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A terminal AI agent that executes tasks from plain English",
   "main": "dist/index.js",
   "bin": {
