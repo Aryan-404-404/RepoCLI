@@ -7,8 +7,6 @@ import { confirm } from "@inquirer/prompts";
 import { getGithubIssue, listOpenIssues, createIssue, getGithubIssueDeclaration, listOpenIssuesDeclaration, createIssueDeclaration } from "./tools/github";
 dotenv.config();
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 const tools: Groq.Chat.ChatCompletionTool[] = [
     readFileDeclaration,
     listFilesDeclaration,
@@ -24,6 +22,7 @@ const tools: Groq.Chat.ChatCompletionTool[] = [
 type Message = Groq.Chat.ChatCompletionMessageParam
 
 export async function runAgent(prompt: string): Promise<void> {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const messages: Message[] = [
         {
             role: "system",
@@ -94,7 +93,7 @@ export async function runAgent(prompt: string): Promise<void> {
                         result = writeFile(args.path, args.content)
                     }
                     else if (toolCall.function.name == 'deleteFile') {
-                        if(!confirmedPath.has(args.path)){
+                        if (!confirmedPath.has(args.path)) {
                             const confirmed = await confirm({
                                 message: `⚠️  Agent wants to delete: "${args.path}". This cannot be undone. Are you sure?`,
                                 default: false
@@ -106,7 +105,7 @@ export async function runAgent(prompt: string): Promise<void> {
                                 confirmedPath.add(args.path);
                                 result = deleteFile(args.path);
                             }
-                        }else{
+                        } else {
                             result = deleteFile(args.path);
                         }
                     }
@@ -154,7 +153,19 @@ export async function runAgent(prompt: string): Promise<void> {
                 }
             }
             else {
-                console.log(chalk.cyan("\n🤖 Agent:"), chalk.whiteBright(choice.message.content));
+                const stream = await groq.chat.completions.create({
+                    model: "llama-3.3-70b-versatile",
+                    messages,
+                    stream: true,
+                    max_tokens: 1024,
+                    temperature: 0
+                })
+                process.stdout.write(chalk.cyan("\n🤖 Agent: "));
+                for await (const chunk of stream) {
+                    const token = chunk.choices[0]?.delta?.content || ''
+                    process.stdout.write(chalk.whiteBright(token))
+                }
+                process.stdout.write('\n');
                 break;
             }
         } catch (err: any) {

@@ -15,3 +15,17 @@
 ### 3. Why `execSync` over `exec`?
 - **The Step-by-Step Rule:** AI Agents function in a reasoning loop. Using synchronous execution forces the Node.js process to wait for the command to finish. 
 - **Result:** This ensures the "Brain" receives the full command output before it decides what to do next, preventing the agent from "tripping over itself" by moving to the next step while a command is still running in the background.
+
+
+
+
+
+Delta.content
+2. delta.content — here's exactly what it is:
+Without streaming, Groq sends you the complete message:
+json{ "message": { "content": "A terminal AI agent is..." } }
+With streaming, Groq sends many small chunks over time. Each chunk has a delta — meaning "the new piece that just arrived":
+jsonchunk 1: { "delta": { "content": "A" } }
+chunk 2: { "delta": { "content": " terminal" } }
+chunk 3: { "delta": { "content": " AI" } }
+chunk 4: { "delta": { "content": "" } }  ← empty, stream ending

@@ -6,6 +6,24 @@ import { runAgent } from "./agent";
 import readline from 'readline'
 
 dotenv.config();
+
+if (!process.env.GROQ_API_KEY) {
+    console.log(chalk.red('\n❌ GROQ_API_KEY not found.'));
+    console.log(chalk.yellow('Get your free API key at: https://console.groq.com'));
+    console.log(chalk.yellow('Then set it in your terminal:'));
+    console.log(chalk.white('  export GROQ_API_KEY="your_key_here"         # Mac/Linux'));
+    console.log(chalk.white('  $env:GROQ_API_KEY="your_key_here"           # Windows PowerShell'));
+    process.exit(1);
+}
+
+if (!process.env.GITHUB_TOKEN) {
+    console.log(chalk.yellow('\n⚠️  GITHUB_TOKEN not set. GitHub features will not work.'));
+    console.log(chalk.yellow('Get a token at: https://github.com/settings/tokens'));
+    console.log(chalk.yellow('Then set it with:'));
+    console.log(chalk.white('  export GITHUB_TOKEN="your_token_here"       # Mac/Linux'));
+    console.log(chalk.white('  $env:GITHUB_TOKEN="your_token_here"         # Windows PowerShell\n'));
+}
+
 // creates a CLI object
 const program = new Command();
 
