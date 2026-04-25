@@ -18,6 +18,7 @@ program
         if (prompt) {
             const spinner = ora("Thinking...").start();
             try {
+                spinner.stop();
                 await runAgent(prompt);
                 spinner.succeed("Agent finished executing!")
             } catch (err) {
@@ -52,6 +53,7 @@ program
 
                 const spinner = ora("Agent is working...").start();
                 try {
+                    spinner.stop();
                     await runAgent(command);
                     spinner.succeed("Done!");
                 } catch (err: any) {

@@ -31,8 +31,8 @@ export async function runAgent(prompt: string): Promise<void> {
             
             SAFETY & EXECUTION RULES:
             1. You ONLY have access to the specific tools provided to you in the tool schema. 
-            2. NEVER execute shell commands or use tools to perform mass deletions (like 'rm -rf', 'del /s', or deleting entire source directories). 
-            3. If asked to do something dangerous, destructive, or outside your toolset, you must politely refuse.
+            2. You ARE allowed to run potentially dangerous commands like 'rm -rf' or delete files IF the user explicitly asks for it.
+            3. The system will automatically ask the user for confirmation before executing any destructive action. You do not need to refuse — just call the tool and let the confirmation handle it.
             4. IMPORTANT: Take things step-by-step. Call ONLY ONE tool at a time. Wait for the result before deciding your next action.
             5. TOOL FAILURES (KILL SWITCH): If a tool returns an error string (e.g., authentication failed, rate limited, file not found), DO NOT retry the tool. You must immediately stop, report the exact error back to the user, and wait for their instructions.
             
@@ -59,6 +59,8 @@ export async function runAgent(prompt: string): Promise<void> {
 
     const maxRetries = 3;
     let retries = 0;
+    let userCancelled = false;
+    let confirmedPath = new Set<string>();
     while (true) {
         try {
             const response = await groq.chat.completions.create({
@@ -92,13 +94,19 @@ export async function runAgent(prompt: string): Promise<void> {
                         result = writeFile(args.path, args.content)
                     }
                     else if (toolCall.function.name == 'deleteFile') {
-                        const confirmed = await confirm({
-                            message: `⚠️  Agent wants to delete: "${args.path}". This cannot be undone. Are you sure?`,
-                            default: false
-                        })
-                        if (!confirmed) {
-                            result = 'User cancelled the deletion.';
-                        } else {
+                        if(!confirmedPath.has(args.path)){
+                            const confirmed = await confirm({
+                                message: `⚠️  Agent wants to delete: "${args.path}". This cannot be undone. Are you sure?`,
+                                default: false
+                            })
+                            if (!confirmed) {
+                                userCancelled = true;
+                                result = 'User cancelled the deletion.';
+                            } else {
+                                confirmedPath.add(args.path);
+                                result = deleteFile(args.path);
+                            }
+                        }else{
                             result = deleteFile(args.path);
                         }
                     }
@@ -110,6 +118,7 @@ export async function runAgent(prompt: string): Promise<void> {
                                 default: false
                             })
                             if (!confirmed) {
+                                userCancelled = true;
                                 result = 'User cancelled the command.';
                             } else {
                                 result = executeShell(args.command)
@@ -138,6 +147,10 @@ export async function runAgent(prompt: string): Promise<void> {
                         tool_call_id: toolCall.id,
                         content: result
                     })
+                }
+                if (userCancelled) {
+                    console.log(chalk.yellow('\n⚠️  Operation cancelled by user.'));
+                    break;
                 }
             }
             else {
