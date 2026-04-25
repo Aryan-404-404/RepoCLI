@@ -9,6 +9,8 @@ export function executeShell(command: string): string {
     }
 }
 
+export const DANGEROUS_SHELL_COMMANDS = ['rm -rf', 'del /s', 'rmdir', 'format', 'rd /s'];
+
 export const executeShellDeclaration = {
     type: "function",
     function: {

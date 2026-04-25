@@ -1,8 +1,9 @@
 import Groq from "groq-sdk";
 import { readFile, listFiles, writeFile, deleteFile, searchFiles, readFileDeclaration, writeFileDeclaration, deleteFileDeclaration, listFilesDeclaration, searchFilesDeclaration } from "./tools/filesystem"
-import { executeShell, executeShellDeclaration } from "./tools/shell";
+import { executeShell, executeShellDeclaration, DANGEROUS_SHELL_COMMANDS } from "./tools/shell";
 import chalk from "chalk";
 import dotenv from 'dotenv'
+import { confirm } from "@inquirer/prompts";
 import { getGithubIssue, listOpenIssues, createIssue, getGithubIssueDeclaration, listOpenIssuesDeclaration, createIssueDeclaration } from "./tools/github";
 dotenv.config();
 
@@ -91,10 +92,32 @@ export async function runAgent(prompt: string): Promise<void> {
                         result = writeFile(args.path, args.content)
                     }
                     else if (toolCall.function.name == 'deleteFile') {
-                        result = deleteFile(args.path);
+                        const confirmed = await confirm({
+                            message: `⚠️  Agent wants to delete: "${args.path}". This cannot be undone. Are you sure?`,
+                            default: false
+                        })
+                        if (!confirmed) {
+                            result = 'User cancelled the deletion.';
+                        } else {
+                            result = deleteFile(args.path);
+                        }
                     }
                     else if (toolCall.function.name == 'executeShell') {
-                        result = executeShell(args.command)
+                        const isDangerous = DANGEROUS_SHELL_COMMANDS.some(cmd => args.command.toLowerCase().includes(cmd));
+                        if (isDangerous) {
+                            const confirmed = await confirm({
+                                message: `⚠️  Agent wants to run: "${args.command}". This could be destructive. Are you sure?`,
+                                default: false
+                            })
+                            if (!confirmed) {
+                                result = 'User cancelled the command.';
+                            } else {
+                                result = executeShell(args.command)
+                            }
+                        }
+                        else {
+                            result = executeShell(args.command);
+                        }
                     }
                     else if (toolCall.function.name == 'getGithubIssue') {
                         result = await getGithubIssue(args.owner, args.repo, args.issueNumber)
