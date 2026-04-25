@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from "commander";
 import dotenv from 'dotenv'
 import ora from "ora";      // for spinner and loading
