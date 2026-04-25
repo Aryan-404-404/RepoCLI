@@ -1,7 +1,11 @@
-import { Octokit } from "octokit";
+import { Octokit } from "@octokit/rest";
+import 'dotenv/config';
 
 const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN
+    auth: process.env.GITHUB_TOKEN?.trim(),
+    headers: {
+        'X-GitHub-Api-Version': '2022-11-28'
+    }
 })
 
 export async function getGithubIssue(owner: string, repo: string, issue_num: number) {
@@ -40,12 +44,12 @@ export async function listOpenIssues(owner: string, repo: string){
     }
 }
 
-export async function createIssue(owner: string, repo: string, title: string, body: string){
+export async function createIssue(owner: string, repo: string, title: string, body?: string){
     try {
         const response = await octokit.rest.issues.create({
             owner: owner,
             repo: repo,
-            titile: title,
+            title: title,
             body: body || "",
         })
         return `Success! Created issue #${response.data.number}. URL: ${response.data.html_url}`;
