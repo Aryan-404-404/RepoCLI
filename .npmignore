@@ -1,2 +1,8 @@
-*
-!dist
+src/
+.env
+keys.txt
+notes.md
+roadmap.md
+tsconfig.json
+.gitignore
+*.ts

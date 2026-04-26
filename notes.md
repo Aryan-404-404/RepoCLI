@@ -29,3 +29,20 @@ jsonchunk 1: { "delta": { "content": "A" } }
 chunk 2: { "delta": { "content": " terminal" } }
 chunk 3: { "delta": { "content": " AI" } }
 chunk 4: { "delta": { "content": "" } }  ← empty, stream ending
+
+Whole flow of the app
+npx @aryan-404-404/repocli "list files"
+        ↓
+npx downloads the package from npm
+        ↓
+reads package.json → finds bin field
+        ↓
+bin says: "repocli" command → run ./dist/index.js
+        ↓
+OS reads first line of dist/index.js → #!/usr/bin/env node
+        ↓
+OS uses Node to execute dist/index.js
+        ↓
+Commander parses "list files"
+        ↓
+agent runs
