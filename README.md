@@ -104,8 +104,7 @@ src/
 
 ## Author
 
-**Aryan** — Final year BCA student & frontend developer
-
+**Aryan**
 - GitHub: [@Aryan-404-404](https://github.com/Aryan-404-404)
 - npm: [@aryan-404-404/repocli](https://www.npmjs.com/package/@aryan-404-404/repocli)
 - LinkedIn: [linkedin.com/aryan](https://www.linkedin.com/in/aryan-599443271/)
