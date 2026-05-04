@@ -2,6 +2,8 @@
 
 RepoCLI is a terminal agent that reads your entire codebase, finds and fixes bugs and raises issues with a single command.
 
+## Demo Video
+https://www.loom.com/share/c69499cf98a341a483cc458756061062
 
 ## Features
 - Agent reads and understands your entire codebase to find bugs.
@@ -99,8 +101,6 @@ src/
         github.ts       — GitHub API tools (create, read, list issues)
         shell.ts        — Shell command execution with safety guardrails
 ```
-
-## Author
 
 ## Author
 
